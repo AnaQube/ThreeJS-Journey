@@ -4,6 +4,11 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 
 /**
+ * 1. ThreeJS light intensities are kinda arbitrary. If you want to use physically correct lights, do renderer.physicallyCorrectLights = true
+ * 2. 
+ */
+
+/**
  * Base
  */
 // Debug
@@ -20,9 +25,21 @@ const scene = new THREE.Scene()
  */
 const testSphere = new THREE.Mesh(
     new THREE.SphereGeometry(1, 32, 32),
-    new THREE.MeshBasicMaterial()
+    new THREE.MeshStandardMaterial()
 )
 scene.add(testSphere)
+
+/**
+ * Lights
+ */
+const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
+directionalLight.position.set(0.25, 3, -2.25)
+scene.add(directionalLight)
+
+gui.add(directionalLight, 'intensity', 0, 10, 0.001).name('lightIntensity')
+gui.add(directionalLight.position, 'x', -5, 5, 0.001).name('lightX')
+gui.add(directionalLight.position, 'y', -5, 5, 0.001).name('lightY')
+gui.add(directionalLight.position, 'z', -5, 5, 0.001).name('lightZ')
 
 /**
  * Sizes
@@ -67,6 +84,7 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.physicallyCorrectLights = true
 
 /**
  * Animate
