@@ -19,7 +19,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/dracoloader'
  * 10. There are a lot of ways to add a model to scene. Depending on how your GLTF is setup, you can add the scene, add the mesh only, filter out children, or just clean the model and import it.
  *     scene.add(gltf.scene.children[x])
  * 11. GLTFLoader subtracts from the children array whenever it loads a mesh. This means that the loader will not load all of the mesh when you use a for loop.
- *     To fix this, use a while loop or duplicate the array to a regular Javascript array
+ *     The real fix is to just add the entire scene. To fix this, use a while loop over the length or duplicate the array to a regular Javascript array
  * 12. Draco needs a special DracoLoader imported. It can use web assembly which means it can run in threads. Copy the wasm/draco folder from node modules three and put it in the static folder.'
  *     Point your .setDecoderPath() to the draco folder '/draco/' in static assets. Set the gltfLoader.setDRACOLoader() to your DracoLoader
  * 13. When to use Draco: When Draco has a substantially lower file size compared to GLTF. You tradeoff CPU/loading time for file size.
