@@ -1,0 +1,35 @@
+1. Alt-D lets you duplicate meshes but linked so that edits you do to one mesh will apply to all duplicates.
+   A caveat to this is when you UV unwrap, only 1 UV unwrap will apply to all duplicates.
+   To unlink all linked objects, select all objects, f3, make single user, check object and object data.
+2. To apply material to multiple meshes, apply a material to one mesh first. Then, select all meshes, make your material mesh active, Ctrl-L -> Material.
+3. Make a bunch of collections to organize your geometries.
+4. Bisect tool lets you chop off parts of a mesh.
+5. Loop cut is good for uniform cuts, you can choose how many to make at once. Double tap G to slide the vertices along the edge.
+6. To make an inset in a face, hit I in edit mode. You can choose how far to inset it. Make sure individual faces is checked. Then, extrude the faces along the normal by hitting Alt-E.
+7. Make sure to delete faces that the scene won't see. Ex: bottom faces of the trunks
+8. To check if the face orientations are correct (not inside out), click the show overlays dropdown and check face orientation.
+   Flipped orientations usually occur due to extruding in the wrong direction. Search flip or recalculate normals outside to flip the normals.
+9. You should not scale meshes in object mode. This causes some issues with scale in the UV unwrap. Scale in edit mode by selecting all vertices then scale.
+   To fix this, Ctrl-A -> apply scale. Make sure that one of the objects has the active outline.
+10. If you want to create bricks in a circle or just dupe in a circular manner, edit the vertices down below the origin point. Then duplicate the mesh and rotate in an axis around the origin.
+
+UV Unwrapping - Unwrapping is just trying different seams and seeing if it works.
+11. A good idea is to let Blender do Auto unwrap for complex objects and manually unwrap for simple flat objects.
+12. Blender needs to know where it can "cut" a UV unwrap. Imagine that the seam opens up like a cube texture.
+    It's a good idea to choose an edge that isn't seen much. Select the edge and hit U and mark seam. Unwrap the geometry and test it.
+13. When UV unwrapping, there is a margin slider. You want a little bit of leeway when unwrapping since mip mapping needs a little margin.
+14. Linked objects will have the same UV unwrap. If you have same objects that need different bakes cause of lighting, do NOT link them.
+15. Emission materials do not need bakes. ThreeJS will just use meshbasicmaterial since it's just a flat color. 
+16. You want the UVs to scale appropriately to the size of the face. Check this by going into the side bar in UV edit, check stretching, and change it to area.
+17. You generally want the UVs to be blue tinted/no greenish. You can redo the UV unwrapping for each group and scale each island to be blue-ish.
+18. UV settings: 4096 or 2048 resolution, no alpha if you don't need, white color since that might bleed through (you can change this to a mood color of the scene), 32 bit color, HDR FILE
+19: You NEED TO DO THIS FOR ALL GEOMETRIES (dupe ones can be grouped into one): 
+    Select a geometry, open up the shader nodes, create an image texture, select the image texture node. Blender will now bake to this node.
+20: Go into render settings, bake, uncheck clear image. Blender will not clear the bake image so that you can bake group by group to the same image.
+21: If you need to rebake due to UV overlap, select the objects that are overlapping, move the UVs that are overlapping, then bake without clearing the image. 
+    This will leave parts of the texture behind but should be ok if you rebake the necessary parts as the UV will be adjusted.
+22: The colors aren't actually the same as blender since blender uses filmic color management which doesn't get exported to the texture.
+    To fix this, we will open up the compositor in blender. Create an image node, use the baked texture, mute (M) the render layers, add denoise node b/w baked image, 
+    adjust render resolution in the sidebar settings, and render it. Now, blender will take in your baked texture, pass it through the denoise and render it with filmic.
+    Save as Jpeg, 75% is fine, rgb, both checked.
+23: Export -> GLTF2.0, GLB or Draco, selected objects, normals unchecked, vertex colors unchecked, no materials, no animation, compression on
