@@ -23,13 +23,30 @@ UV Unwrapping - Unwrapping is just trying different seams and seeing if it works
 16. You want the UVs to scale appropriately to the size of the face. Check this by going into the side bar in UV edit, check stretching, and change it to area.
 17. You generally want the UVs to be blue tinted/no greenish. You can redo the UV unwrapping for each group and scale each island to be blue-ish.
 18. UV settings: 4096 or 2048 resolution, no alpha if you don't need, white color since that might bleed through (you can change this to a mood color of the scene), 32 bit color, HDR FILE
-19: You NEED TO DO THIS FOR ALL GEOMETRIES (dupe ones can be grouped into one): 
+19: MEGA IMPORTANT FOR BAKING: You NEED TO DO THIS FOR ALL GEOMETRIES (dupe ones can be grouped into one): 
     Select a geometry, open up the shader nodes, create an image texture, select the image texture node. Blender will now bake to this node.
 20: Go into render settings, bake, uncheck clear image. Blender will not clear the bake image so that you can bake group by group to the same image.
 21: If you need to rebake due to UV overlap, select the objects that are overlapping, move the UVs that are overlapping, then bake without clearing the image. 
     This will leave parts of the texture behind but should be ok if you rebake the necessary parts as the UV will be adjusted.
-22: The colors aren't actually the same as blender since blender uses filmic color management which doesn't get exported to the texture.
+22: MEGA IMPOTANT: The colors aren't actually the same as blender since blender uses filmic color management which doesn't get exported to the texture.
     To fix this, we will open up the compositor in blender. Create an image node, use the baked texture, mute (M) the render layers, add denoise node b/w baked image, 
     adjust render resolution in the sidebar settings, and render it. Now, blender will take in your baked texture, pass it through the denoise and render it with filmic.
     Save as Jpeg, 75% is fine, rgb, both checked.
 23: Export -> GLTF2.0, GLB or Draco, selected objects, normals unchecked, vertex colors unchecked, no materials, no animation, compression on
+
+Extra blender tips:
+1. The order of doing operations does matter. For example, loop cut -> bevel will result in un-even faces and cuts. Doing bevel -> loop cut instead will result in better topology.
+2. To get a sense of scale, you can add fog, depth (of field), people for reference, contrast. A lower camera angle can also make things more looming. You can do these things in THREE as well.
+3. If you want a flat, no shadow shading, use the emission shader. This will change anyway in THREE. 
+   a. If you want to BAKE a flat texture with no render, use the diffuse setting in bake.
+4. For sharp shadows, use a size of 0 on the light.
+5. MEGA MEGA IMPORTANT FOR BAKING TEXTURES: If you're using an image texture as an input and want to bake/output to ANOTHER image texture, add two nodes to the shader graph.
+   Select the texture in each node to use. Connect the input image texture node to the shader. Select the output node by making it active/outlined and then bake it.
+   This is useful for when you want to paint a texture and then bake all the lighting onto a final texture. 
+   The workflow would be select your base solid colors, bake that to your first texture, set all the materials to the first texture, paint whatever you want, then bake the render to your second texture.
+6. If your materials don't look right in the render, remember... ya gotta save them or cycle views to get them to refresh. This is true after baking too.
+
+
+
+Link to converting materials to textures in blender
+https://blender.stackexchange.com/questions/90096/how-can-i-convert-a-node-made-material-into-an-image-texture

@@ -4,6 +4,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/dracoloader'
+import * as POSTPROCESSING from "postprocessing"
+import { SSREffect } from 'screen-space-reflections'
+import { Side } from 'three'
 
 /**
  * 1. You can import models externally as an asset. Right now, GLTF is popular for ThreeJS. GLTF supports geometries, materials (PBR supported), camera, light, a lot more...
@@ -41,6 +44,7 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+scene.background = new THREE.Color('white')
 
 /**
  * Models
@@ -65,6 +69,7 @@ gltfLoader.load(
         action.play()
 
         gltf.scene.scale.set(0.025, 0.025, 0.025)
+        gltf.scene.position.set(-0, 0, -0)
         scene.add(gltf.scene)
     }
 )
@@ -77,13 +82,22 @@ const floor = new THREE.Mesh(
     new THREE.MeshStandardMaterial({
         color: '#444444',
         metalness: 0,
-        roughness: 0.5
+        roughness: 0.4
     })
 )
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
+floor.material.userData.needsUpdatedReflections = true
 scene.add(floor)
 
+const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(10, 10, 10),
+    new THREE.MeshBasicMaterial({
+        color: '#444444',
+        side: THREE.DoubleSide
+    })
+)
+// scene.add(cube)
 /**
  * Lights
  */
@@ -148,6 +162,35 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+const composer = new POSTPROCESSING.EffectComposer(renderer)
+const ssr = new SSREffect(scene, camera)
+const renderPass = new POSTPROCESSING.RenderPass(scene, camera)
+composer.addPass(renderPass)
+const ssrPass = new POSTPROCESSING.EffectPass(camera, ssr)
+composer.addPass(ssrPass)
+
+const debugFolder = gui.addFolder('SSR')
+debugFolder.add(ssr, 'intensity', 0, 3, 0.01).name('Intensity')
+debugFolder.add(ssr, 'exponent', 0.125, 8, 0.01).name('Exponent')
+debugFolder.add(ssr, 'distance', 0, 10, 0.01).name('Distance')
+debugFolder.add(ssr, 'fade', 0, 20, 0.01).name('Fade')
+debugFolder.add(ssr, 'roughnessFade', 0, 1, 0.01).name('Roughness Fade')
+debugFolder.add(ssr, 'thickness', 0, 1000, 0.01).name('Thickness')
+debugFolder.add(ssr, 'ior', 0, 2.33, 0.01).name('IOR')
+debugFolder.add(ssr, 'maxRoughness', 0, 1, 0.01).name('maxRoughness')
+debugFolder.add(ssr, 'maxDepthDifference', 0, 100, 0.01).name('maxDepthDifference')
+debugFolder.add(ssr, 'blend', 0, 0.95, 0.01).name('blend')
+debugFolder.add(ssr, 'correction', 0, 1, 0.01).name('correction')
+debugFolder.add(ssr, 'correctionRadius', 0, 4, 0.01).name('correctionRadius')
+debugFolder.add(ssr, 'blur', 0, 1, 0.01).name('blur')
+debugFolder.add(ssr, 'blurKernel', 0, 5, 0.01).name('blurKernel')
+debugFolder.add(ssr, 'blurSharpness', 0, 100, 0.01).name('blurSharpness')
+debugFolder.add(ssr, 'jitter', -1, 4, 0.01).name('jitter')
+debugFolder.add(ssr, 'jitterRoughness', 0, 4, 0.01).name('jitterRoughness')
+debugFolder.add(ssr, 'steps', 0, 256, 1).name('steps')
+debugFolder.add(ssr, 'refineSteps', 0, 16, 1).name('refineSteps')
+debugFolder.add(ssr, 'resolutionScale', 0, 1, 0.01).name('resolutionScale')
+
 /**
  * Animate
  */
@@ -168,7 +211,8 @@ const tick = () =>
     controls.update()
 
     // Render
-    renderer.render(scene, camera)
+    // renderer.render(scene, camera)
+    composer.render()
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
